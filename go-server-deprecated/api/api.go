@@ -4,17 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-)
 
-type modelResult struct {
-	ModelName  string  `json:"model_name"`
-	Inference  int     `json:"inference"`
-	Confidence float64 `json:"confidence"`
-}
+	"github.com/austin-weeks/ml-interactive-site/models"
+)
 
 func HandlerInferDigit(w http.ResponseWriter, r *http.Request) {
 	params := struct {
-		ImageData []float64 `json:"image_data"`
+		ImageData []float32 `json:"image_data"`
 	}{}
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&params)
@@ -32,22 +28,16 @@ func HandlerInferDigit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	results, err := models.PerformInferences(params.ImageData)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, fmt.Errorf("could not perform inference: %w", err))
+		return
+	}
 	// Mock results
 	modelResp := struct {
-		Results []modelResult `json:"results"`
+		Results []models.ModelResult `json:"results"`
 	}{
-		Results: []modelResult{
-			{
-				ModelName:  "Linear",
-				Inference:  2,
-				Confidence: 0.5,
-			},
-			{
-				ModelName:  "LeNet-5",
-				Inference:  1,
-				Confidence: 0.999,
-			},
-		},
+		Results: results,
 	}
 	respondWithJSON(w, http.StatusOK, modelResp)
 }
@@ -55,12 +45,17 @@ func HandlerInferDigit(w http.ResponseWriter, r *http.Request) {
 func respondWithJSON(w http.ResponseWriter, code int, payload any) error {
 	resp, err := json.Marshal(payload)
 	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
 		return err
 	}
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(code)
 	_, err = w.Write(resp)
-	return err
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return err
+	}
+	return nil
 }
 
 func respondWithError(w http.ResponseWriter, code int, err error) error {

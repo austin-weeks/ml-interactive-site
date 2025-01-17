@@ -1,2 +1,4 @@
 .env
-server/tmp
+go-server-deprecated/tmp
+*/__pycache__
+*/venv

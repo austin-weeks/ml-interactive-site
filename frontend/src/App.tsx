@@ -71,8 +71,11 @@ const App = () => {
           "image_data": imageData
         })
       });
-      const json = await resp.json() as results;
-      setServerStatus(json);
+      const json = await resp.json();
+      if (json.error) {
+        throw new Error(json.error);
+      }
+      setServerStatus(json as results);
     } catch (e) {
       console.error(e);
       setServerStatus("failure");
@@ -133,8 +136,8 @@ const Results = () => {
         {serverStatus.results.map(result => (
           <tr key={result.model_name}>
             <td>{result.model_name}</td>
-            <td>{result.inference}</td>
-            <td>{result.confidence}</td>
+            <td className="font-bold">{result.inference}</td>
+            <td>{(result.confidence * 100).toFixed(0)}%</td>
           </tr>
         ))}
       </tbody>
