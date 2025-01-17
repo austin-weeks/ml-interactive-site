@@ -46,7 +46,9 @@ const App = () => {
         headers: {
           "Content-Type": "application/json; charset=utf-8"
         },
-        body: JSON.stringify(imageData)
+        body: JSON.stringify({
+          "image_data": imageData
+        })
       });
       const json = await resp.json();
       setServerStatus(json);
