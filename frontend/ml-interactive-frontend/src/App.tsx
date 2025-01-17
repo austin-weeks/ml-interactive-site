@@ -1,34 +1,45 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { createContext, useRef } from "react"
+import DrawPad from "./DrawPad"
+
+type appContext = {
+  onRequestImage: (callback: () => number[] | null) => void
+}
+
+export const AppContext = createContext<appContext | null>(null);
 
 function App() {
-  const [count, setCount] = useState(0)
+  const getImageCallback = useRef<any>(null);
+  function onRequestImage(callback: () => number[] | null) {
+    getImageCallback.current = callback;
+  }
+  function onSubmit() {
+    if (!getImageCallback.current) {
+      console.error("get image callback not registered");
+      window.alert("cant do it");
+      return;
+    }
+    const imageData = getImageCallback.current();
+    console.log(imageData);
+    // send to backend for processing
+  }
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
+    <AppContext.Provider value={{
+      onRequestImage
+    }}
+    >
+      <h1>How good is that model?</h1>
+      <p className="text-center">
+        Draw a single numerical digit (0-9) in the drawing pad, and see how different models interpret it!
       </p>
-    </>
+      <DrawPad />
+      <button onClick={onSubmit}>Submit</button>
+      <div className="flex flex-row gap-4">
+        {/* <div>The model sees -&gt; </div> */}
+        <div id="downsampled-root" />
+      </div>
+      {/* here be the results */}
+    </AppContext.Provider>
   )
 }
 
