@@ -1,12 +1,34 @@
 import { createContext, useContext, useRef, useState } from "react"
 import DrawPad from "./DrawPad"
 import Spinner from "./Spinner";
+import "./results-table.css"
 
-const DEV = true;
 const API_URL = "http://localhost:8080/models";
 
-type inference = any
-type serverStatus = null | "loading" | "failure" | inference
+const MOCK_DATA = {
+  results: [
+    {
+      model_name: "model 1",
+      inference: 1,
+      confidence: 0.5
+    },
+    {
+      model_name: "model 2",
+      inference: 2,
+      confidence: 0.9
+    }
+  ]
+}
+
+type results = {
+  results: inference[]
+}
+type inference = {
+  model_name: string
+  inference: number
+  confidence: number
+}
+type serverStatus = null | "loading" | "failure" | results
 
 type appContext = {
   onRequestImage: (callback: () => number[]) => void
@@ -17,7 +39,7 @@ export const AppContext = createContext<appContext | null>(null);
 
 const App = () => {
   const [serverStatus, setServerStatus] = useState<serverStatus>(null);
-  
+
   const getImageCallback = useRef<() => number[]>();
   function onRequestImage(callback: () => number[]) {
     getImageCallback.current = callback;
@@ -28,6 +50,7 @@ const App = () => {
       window.alert("cant do it");
       return;
     }
+    setServerStatus("loading");
 
     let imageData;
     try {
@@ -39,8 +62,6 @@ const App = () => {
     }
     // send to backend for processing
     try {
-      setServerStatus("loading");
-      if (DEV) await new Promise(resolve => setTimeout(resolve, 3000));
       const resp = await fetch(API_URL, {
         method: "POST",
         headers: {
@@ -50,7 +71,7 @@ const App = () => {
           "image_data": imageData
         })
       });
-      const json = await resp.json();
+      const json = await resp.json() as results;
       setServerStatus(json);
     } catch (e) {
       console.error(e);
@@ -96,11 +117,28 @@ const Results = () => {
       Waiting for robots 🤖
     </div>
   );
+
   // Return table with results
+  // Borders are styled in ./results-table.css
   else return (
-    <div>
-      {serverStatus}
-    </div>
+    <table className="border-separate border-neutral-600 border-[0.5px] rounded-sm border-spacing-0">
+      <thead className="font-bold text-neutral-100">
+        <tr className="gap-">
+          <th>Model Type</th>
+          <th>Inference</th>
+          <th>Confidence</th>
+        </tr>
+      </thead>
+      <tbody className="text-neutral-300">
+        {serverStatus.results.map(result => (
+          <tr key={result.model_name}>
+            <td>{result.model_name}</td>
+            <td>{result.inference}</td>
+            <td>{result.confidence}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 }
 
