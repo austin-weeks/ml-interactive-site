@@ -17,10 +17,9 @@ const DrawPad = () => {
   if (!context) return;
   const { onRequestImage } = context;
   
-  function getImageData(): number[] | null {
+  function getImageData(): number[] {
     if (!state.current.ctx) {
-      console.error("no canvas context");
-      return null;
+      throw new Error("canvas context is not set");
     }
 
     //Create a downsampled canvas
@@ -35,8 +34,7 @@ const DrawPad = () => {
     // document.getElementById("downsampled-root")?.append(downsampledCanvas);
     const downsampledCtx = downsampledCanvas.getContext("2d");
     if (!downsampledCtx) {
-      console.error("could not get context of downsampled canvas");
-      return null;
+      throw new Error("could not get downsample canvas context");
     }
     // downsampledCtx.imageSmoothingEnabled = false;
     downsampledCtx.clearRect(0, 0, downsampledCanvas.width, downsampledCanvas.height);
