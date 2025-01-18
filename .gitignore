@@ -2,3 +2,4 @@
 go-server-deprecated/tmp
 */__pycache__
 */venv
+models/data
