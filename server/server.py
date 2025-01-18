@@ -17,7 +17,8 @@ def perform_inferences():
 
     results = [
         inference.get_basic_model_inference(img_data),
-        inference.get_lenet_5_inference(img_data)
+        inference.get_lenet_5_inference(img_data),
+        inference.get_advanced_cnn_inference(img_data)
     ]
 
     return jsonify({

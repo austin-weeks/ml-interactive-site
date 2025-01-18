@@ -32,6 +32,17 @@ def get_lenet_5_inference(img_data: list[float]) -> ModelInference:
     inference, confidence = __infer(__lenet_5, img_data)
     return ModelInference("LeNet-5", inference, confidence)
 
+__advanced_cnn: torch.jit.ScriptModule = None
+def get_advanced_cnn_inference(img_data: list[float]) -> ModelInference:
+    global __advanced_cnn
+    if not __advanced_cnn:
+        __advanced_cnn = torch.jit.load("../models/torchscript-models/advanced_cnn.pt")
+        __advanced_cnn.eval()
+        __advanced_cnn.to(device)
+
+    inference, confidence = __infer(__advanced_cnn, img_data)
+    return ModelInference("Advanced CNN", inference, confidence)
+
 def __infer(model: torch.jit.ScriptModule, img_data: list[float]) -> tuple[int, float]:
     input = torch.tensor(img_data, dtype=torch.float)
     input = input.unsqueeze(0)
