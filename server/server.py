@@ -16,7 +16,8 @@ def perform_inferences():
         return jsonify({"error": "Invalid image_data type -> should be a float array"}), 400
 
     results = [
-        inference.get_basic_model_inference(img_data)
+        inference.get_basic_model_inference(img_data),
+        inference.get_lenet_5_inference(img_data)
     ]
 
     return jsonify({

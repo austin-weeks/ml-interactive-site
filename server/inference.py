@@ -17,14 +17,29 @@ def get_basic_model_inference(img_data: list[float]) -> ModelInference:
         __simple_model.eval()
         __simple_model.to(device)
 
-    # calculate from simple model
+    inference, confidence = __infer(__simple_model, img_data)
+    return ModelInference("Basic Neural Network", inference, confidence)
+
+__lenet_5: torch.jit.ScriptModule = None
+def get_lenet_5_inference(img_data: list[float]) -> ModelInference:
+    global __lenet_5
+    if not __lenet_5:
+        __lenet_5 = torch.jit.load("../models/torchscript-models/lenet-5.pt")
+        __lenet_5.eval()
+        __lenet_5.to(device)
+    
+    # calculate from lenet-5
+    inference, confidence = __infer(__lenet_5, img_data)
+    return ModelInference("LeNet-5", inference, confidence)
+
+def __infer(model: torch.jit.ScriptModule, img_data: list[float]) -> tuple[int, float]:
     input = torch.tensor(img_data, dtype=torch.float)
     input = input.unsqueeze(0)
     input = input.to(device)
     with torch.no_grad():
-        raw_out = __simple_model(input).squeeze()
+        raw_out = model(input).squeeze()
     output = torch.softmax(raw_out, 0)
     inference = output.argmax().item()
     confidence = output[inference].item()
 
-    return ModelInference("Basic Neural Network", inference, confidence)
+    return inference, confidence
