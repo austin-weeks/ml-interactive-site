@@ -1,6 +1,27 @@
 import torch
 from torch.utils.data import DataLoader
 
+def train_model(
+    model: torch.nn.Module,
+    training_loader: DataLoader,
+    test_loader: DataLoader,
+    loss_fn: torch.nn.Module,
+    optimizer: torch.optim.Optimizer,
+    print_freq: int | None = 100,
+    epochs: int = 10,
+    stop_loss: float | None = None,
+    device: str = "cpu"
+):
+    for i in range(epochs):
+        print(f"\n---- EPOCH {i + 1} ----")
+        loss = train_one_epoch(model, training_loader, loss_fn, optimizer, print_freq=print_freq, device=device)
+        print(f"Epoch Loss: {loss:>8f}")
+        if stop_loss and loss <= stop_loss:
+            print(f"Reached loss of {loss}")
+            break
+
+    evaluate_model(model, test_loader, loss_fn, device=device)
+
 def train_one_epoch(
     model: torch.nn.Module,
     dataloader: DataLoader,
