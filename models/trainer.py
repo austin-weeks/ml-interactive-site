@@ -7,6 +7,7 @@ def train_model(
     test_loader: DataLoader,
     loss_fn: torch.nn.Module,
     optimizer: torch.optim.Optimizer,
+    scheduler: torch.optim.lr_scheduler.LRScheduler | None = None,
     print_freq: int | None = 100,
     epochs: int = 10,
     stop_loss: float | None = None,
@@ -14,7 +15,7 @@ def train_model(
 ):
     for i in range(epochs):
         print(f"\n---- EPOCH {i + 1} ----")
-        loss = train_one_epoch(model, training_loader, loss_fn, optimizer, print_freq=print_freq, device=device)
+        loss = train_one_epoch(model, training_loader, loss_fn, optimizer, scheduler=scheduler, print_freq=print_freq, device=device)
         print(f"Epoch Loss: {loss:>8f}")
         if stop_loss and loss <= stop_loss:
             print(f"Reached loss of {loss}")
@@ -27,6 +28,7 @@ def train_one_epoch(
     dataloader: DataLoader,
     loss_fn: torch.nn.Module,
     optimizer: torch.optim.Optimizer,
+    scheduler: torch.optim.lr_scheduler.LRScheduler | None = None,
     print_freq: int | None = 100,
     device: str = "cpu"
 ) -> float:
@@ -42,6 +44,9 @@ def train_one_epoch(
         loss.backward()
         optimizer.step()
         optimizer.zero_grad()
+        if scheduler:
+            scheduler.step()
+
         loss_val = loss.item()
         total_loss += loss_val
 
