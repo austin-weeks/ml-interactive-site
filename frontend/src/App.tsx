@@ -1,24 +1,9 @@
 import { createContext, useContext, useRef, useState } from "react"
 import DrawPad from "./DrawPad"
-import Spinner from "./Spinner";
+import Spinner from "./Spinner"
 import "./results-table.css"
 
 const API_URL = "http://localhost:8080/models";
-
-const MOCK_DATA = {
-  results: [
-    {
-      model_name: "model 1",
-      inference: 1,
-      confidence: 0.5
-    },
-    {
-      model_name: "model 2",
-      inference: 2,
-      confidence: 0.9
-    }
-  ]
-}
 
 type results = {
   results: inference[]
@@ -28,7 +13,7 @@ type inference = {
   inference: number
   confidence: number
 }
-type serverStatus = null | "loading" | "failure" | results
+type serverStatus = null | "loading" | "server-failure" | "client-failure" | results
 
 type appContext = {
   onRequestImage: (callback: () => number[]) => void
@@ -57,7 +42,7 @@ const App = () => {
       imageData = getImageCallback.current();
     } catch (e) {
       console.error(e);
-      setServerStatus("failure");
+      setServerStatus("client-failure");
       return;
     }
     // send to backend for processing
@@ -78,7 +63,7 @@ const App = () => {
       setServerStatus(json as results);
     } catch (e) {
       console.error(e);
-      setServerStatus("failure");
+      setServerStatus("server-failure");
     }
   }
 
@@ -104,9 +89,9 @@ const Results = () => {
   if (!context) return;
   const { serverStatus } = context;
   if (!serverStatus) return;
-  if (serverStatus == "failure") return (
+  if (serverStatus == "server-failure" || serverStatus == "client-failure") return (
     <div className="bg-red-900 rounded-sm border border-red-700 shadow-md px-2.5 py-1">
-      :( Couldn't Get Response from Server
+      :( {serverStatus == "server-failure" ? "Couldn't Get Response from Server" : "Couldn't process your drawing"}
     </div>
   );
   if (serverStatus == "loading") return (

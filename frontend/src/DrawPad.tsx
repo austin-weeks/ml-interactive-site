@@ -1,9 +1,9 @@
 import { useContext, useEffect, useRef } from "react"
-import { AppContext } from "./App";
+import { AppContext } from "./App"
+import { centerAndResizeDigit, downsampleAndGetPixelArray } from "./preprocessCanvas";
 
-const STROKE_WIDTH = 16;
+const STROKE_WIDTH = 14;
 const STROKE_COLOR = "#FFFFFF";
-const DOWNSAMPLED_SIZE = 28;
 
 type canvasState = {
   isDrawing: boolean
@@ -16,45 +16,19 @@ const DrawPad = () => {
   const context = useContext(AppContext);
   if (!context) return;
   const { onRequestImage } = context;
-  
+
   function getImageData(): number[] {
     if (!state.current.ctx) {
       throw new Error("canvas context is not set");
     }
 
-    //Create a downsampled canvas
-    let downsampledCanvas = document.getElementById("downsampled-canvas") as HTMLCanvasElement;
-    if (!downsampledCanvas) {
-      downsampledCanvas = document.createElement("canvas");
-      downsampledCanvas.id = "downsampled-canvas";
-      downsampledCanvas.width = DOWNSAMPLED_SIZE;
-      downsampledCanvas.height = DOWNSAMPLED_SIZE;
-      downsampledCanvas.classList.add("shadow-sm", "border", "border-neutral-600", "rounded-sm", "bg-neutral-900")
-    }
-    // document.getElementById("downsampled-root")?.append(downsampledCanvas);
-    const downsampledCtx = downsampledCanvas.getContext("2d");
-    if (!downsampledCtx) {
-      throw new Error("could not get downsample canvas context");
-    }
-    // downsampledCtx.imageSmoothingEnabled = false;
-    downsampledCtx.clearRect(0, 0, downsampledCanvas.width, downsampledCanvas.height);
-    // Draw original canvas to downsampled canvas
-    downsampledCtx.drawImage(state.current.ctx.canvas, 0, 0, DOWNSAMPLED_SIZE, DOWNSAMPLED_SIZE);
+
     state.current.ctx.imageSmoothingEnabled = false;
-    state.current.ctx.clearRect(0, 0, state.current.ctx.canvas.width, state.current.ctx.canvas.height);
-    state.current.ctx.drawImage(downsampledCtx.canvas, 0, 0, state.current.ctx.canvas.width, state.current.ctx.canvas.height);
-    
-    // Get Image data for downsampled canvas
-    const {data, width, height} = downsampledCtx.getImageData(0, 0, DOWNSAMPLED_SIZE, DOWNSAMPLED_SIZE, {colorSpace: "srgb"});
-    console.assert(width === height);
-    const out: number[] = [];
-    for (let i = 0; i < data.length; i += 4) {
-      const r = data[i], g = data[i + 1], b = data[i + 2], a =  data[i + 3];
-      // Avg the values, divide by 255 to clamp from 0-1
-      const value = ((r + g + b + a) / 4) / 255;
-      out.push(value);
-    }
-    return out;
+    // Preprocess the original drawing and center on original canvas
+    centerAndResizeDigit(state.current.ctx);
+    // Downsample the drawing to 28 x 28
+    // Return drawing pixel array
+    return downsampleAndGetPixelArray(state.current.ctx);
   }
   onRequestImage(() => getImageData())
   
