@@ -15,22 +15,29 @@ type canvasState = {
 const DrawPad = () => {
   const context = useContext(AppContext);
   if (!context) return;
-  const { onRequestImage } = context;
+  const { onRequestImage, getClearCanvas } = context;
 
   function getImageData(): number[] {
     if (!state.current.ctx) {
       throw new Error("canvas context is not set");
     }
-
-
-    state.current.ctx.imageSmoothingEnabled = false;
     // Preprocess the original drawing and center on original canvas
     centerAndResizeDigit(state.current.ctx);
     // Downsample the drawing to 28 x 28
     // Return drawing pixel array
     return downsampleAndGetPixelArray(state.current.ctx);
   }
-  onRequestImage(() => getImageData())
+  onRequestImage(getImageData)
+
+  function clearCanvas() {
+    if (!state.current.ctx) {
+      return;
+    }
+    const width = state.current.ctx.canvas.width;
+    const height = state.current.ctx.canvas.height;
+    state.current.ctx.clearRect(0, 0, width, height);
+  }
+  getClearCanvas(clearCanvas);
   
   const canvas = useRef<HTMLCanvasElement>(null);
   const state = useRef<canvasState>({
@@ -49,12 +56,14 @@ const DrawPad = () => {
       console.error("somehow state is null!");
       return;
     }
-
-    const canvasCtx = canvas.current.getContext("2d");
+    const canvasCtx = canvas.current.getContext("2d", {
+      willReadFrequently: true
+    });
     if (!canvasCtx) {
       console.log("no context");
       return;
     }
+    canvasCtx.imageSmoothingEnabled = false;
     state.current.ctx = canvasCtx;
     
     function onMouseDown(e: MouseEvent) {

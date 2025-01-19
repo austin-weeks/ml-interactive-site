@@ -17,6 +17,7 @@ type serverStatus = null | "loading" | "server-failure" | "client-failure" | res
 
 type appContext = {
   onRequestImage: (callback: () => number[]) => void
+  getClearCanvas: (callback: () => void) => void
   serverStatus: serverStatus
 }
 
@@ -29,6 +30,11 @@ const App = () => {
   function onRequestImage(callback: () => number[]) {
     getImageCallback.current = callback;
   }
+  const clearCanvasCallback = useRef<() => void>();
+  function getClearCanvas(callback: () => void) {
+    clearCanvasCallback.current = callback;
+  }
+
   async function onSubmit() {
     if (!getImageCallback.current) {
       console.error("get image callback not registered");
@@ -67,10 +73,18 @@ const App = () => {
     }
   }
 
+  function onClearCanvas() {
+    if (!clearCanvasCallback.current) {
+      return;
+    }
+    clearCanvasCallback.current();
+  }
+
   return (
     <AppContext.Provider value={{
       onRequestImage,
-      serverStatus
+      serverStatus,
+      getClearCanvas
     }}
     >
       <h1>How good is that model?</h1>
@@ -78,7 +92,10 @@ const App = () => {
         Draw a single numerical digit (0-9) in the drawing pad, and see how different models interpret it!
       </p>
       <DrawPad />
-      {!serverStatus && <button onClick={onSubmit}>Submit</button>}
+      <div className="flex flex-row justify-evenly gap-2 w-[226px]">
+        <button className="flex-grow" onClick={onSubmit}>Submit</button>
+        <button className="flex-grow" onClick={onClearCanvas}>Clear</button>
+      </div>
       <Results />
     </AppContext.Provider>
   )
@@ -129,7 +146,5 @@ const Results = () => {
     </table>
   );
 }
-
-
 
 export default App
