@@ -5,7 +5,6 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 
 @dataclass
 class ModelInference():
-    model_name: str
     inference: int
     confidence: float
 
@@ -18,7 +17,7 @@ def get_basic_model_inference(img_data: list[float]) -> ModelInference:
         __simple_model.to(device)
 
     inference, confidence = __infer(__simple_model, img_data)
-    return ModelInference("Basic Neural Network", inference, confidence)
+    return ModelInference(inference, confidence)
 
 __lenet_5: torch.jit.ScriptModule = None
 def get_lenet_5_inference(img_data: list[float]) -> ModelInference:
@@ -30,7 +29,7 @@ def get_lenet_5_inference(img_data: list[float]) -> ModelInference:
     
     # calculate from lenet-5
     inference, confidence = __infer(__lenet_5, img_data)
-    return ModelInference("LeNet-5", inference, confidence)
+    return ModelInference(inference, confidence)
 
 __advanced_cnn: torch.jit.ScriptModule = None
 def get_advanced_cnn_inference(img_data: list[float]) -> ModelInference:
@@ -41,7 +40,7 @@ def get_advanced_cnn_inference(img_data: list[float]) -> ModelInference:
         __advanced_cnn.to(device)
 
     inference, confidence = __infer(__advanced_cnn, img_data)
-    return ModelInference("Advanced CNN", inference, confidence)
+    return ModelInference(inference, confidence)
 
 def __infer(model: torch.jit.ScriptModule, img_data: list[float]) -> tuple[int, float]:
     input = torch.tensor(img_data, dtype=torch.float)
