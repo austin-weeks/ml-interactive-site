@@ -22,7 +22,7 @@ export function centerAndResizeDigit(ctx: CanvasRenderingContext2D) {
   const imageWidth = maxX - minX;
   const imageHeight = maxY - minY;
 
-  const paddingFactor = 0.82; // what percent of the canvas should the image fill
+  const paddingFactor = 0.7; // what percent of the canvas should the image fill
   const scale = Math.min(canvasWidth / imageWidth, canvasHeight / imageHeight) * paddingFactor;
 
   const newWidth = imageWidth * scale;
