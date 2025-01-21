@@ -69,21 +69,15 @@ const DrawPad = () => {
     const controller = new AbortController();
     const {signal} = controller;
 
-    function getCoords(e: MouseEvent | TouchEvent): {offsetX: number, offsetY: number} {
-      if (e instanceof TouchEvent) {
-        const touch = e.touches[0] || e.changedTouches[0];
-        const rect = canvas.current!.getBoundingClientRect();
-        return {
-          offsetX: touch.clientX - rect.left,
-          offsetY: touch.clientY - rect.top
-        }
-      } else return {
-        offsetX: e.offsetX,
-        offsetY: e.offsetY
+    function getCoords(e: PointerEvent): {offsetX: number, offsetY: number} {
+      const rect = canvas.current!.getBoundingClientRect();
+      return {
+        offsetX: e.clientX - rect.left,
+        offsetY: e.clientY - rect.top
       }
     }
     
-    function onPointerDown(e: MouseEvent | TouchEvent) {
+    function onPointerDown(e: PointerEvent) {
       e.preventDefault();
       const {offsetX, offsetY} = getCoords(e);
       state.current.isDrawing = true;
@@ -91,7 +85,7 @@ const DrawPad = () => {
       state.current.lastY = offsetY;
     }
     
-    function onMouseMove(e: MouseEvent | TouchEvent) {
+    function onMouseMove(e: PointerEvent) {
       if (!state.current.isDrawing || !canvasCtx) return;
       e.preventDefault();
       const {offsetX, offsetY} = getCoords(e);
@@ -114,14 +108,11 @@ const DrawPad = () => {
       state.current.isDrawing = false;
     }
 
-    canvas.current.addEventListener("touchmove", onMouseMove, {signal, passive: false});
-    canvas.current.addEventListener("touchstart", onPointerDown, {signal, passive: false});
-    canvas.current.addEventListener("mousemove", onMouseMove, {signal});
-    canvas.current.addEventListener("mousedown", onPointerDown, {signal});
-    canvas.current.addEventListener("touchcancel", onDrawLeave, {signal});
-    canvas.current.addEventListener("touchend", onDrawLeave, {signal})
-    canvas.current.addEventListener("mouseup", onDrawLeave, {signal});
-    canvas.current.addEventListener("mouseout", onDrawLeave, {signal});
+    canvas.current.addEventListener("pointermove", onMouseMove, {signal, passive: false});
+    canvas.current.addEventListener("pointerdown", onPointerDown, {signal, passive: false});
+    canvas.current.addEventListener("pointerup", onDrawLeave, {signal});
+    canvas.current.addEventListener("pointercancel", onDrawLeave, {signal});
+    canvas.current.addEventListener("pointerleave", onDrawLeave, {signal});
 
     return () => {
       controller.abort();
