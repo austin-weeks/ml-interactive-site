@@ -1,3 +1,5 @@
-torch
-flask
-flask_cors
+torch==2.5.1
+flask==3.1.0
+flask_cors==5.0.0
+numpy==2.2.1
+gunicorn==23.0.0
