@@ -63,22 +63,42 @@ const DrawPad = () => {
       console.log("no context");
       return;
     }
-    canvasCtx.imageSmoothingEnabled = false;
     state.current.ctx = canvasCtx;
-    
-    function onMouseDown(e: MouseEvent) {
-      state.current.isDrawing = true;
-      state.current.lastX = e.offsetX;
-      state.current.lastY = e.offsetY;
+    canvasCtx.imageSmoothingEnabled = false;
+
+    const controller = new AbortController();
+    const {signal} = controller;
+
+    function getCoords(e: MouseEvent | TouchEvent): {offsetX: number, offsetY: number} {
+      if (e instanceof TouchEvent) {
+        const touch = e.touches[0] || e.changedTouches[0];
+        const rect = canvas.current!.getBoundingClientRect();
+        return {
+          offsetX: touch.clientX - rect.left,
+          offsetY: touch.clientY - rect.top
+        }
+      } else return {
+        offsetX: e.offsetX,
+        offsetY: e.offsetY
+      }
     }
-    canvas.current.addEventListener("mousedown", onMouseDown);
-
-    function onMouseMove(e: MouseEvent) {
+    
+    function onPointerDown(e: MouseEvent | TouchEvent) {
+      e.preventDefault();
+      const {offsetX, offsetY} = getCoords(e);
+      state.current.isDrawing = true;
+      state.current.lastX = offsetX;
+      state.current.lastY = offsetY;
+    }
+    
+    function onMouseMove(e: MouseEvent | TouchEvent) {
       if (!state.current.isDrawing || !canvasCtx) return;
-
+      e.preventDefault();
+      const {offsetX, offsetY} = getCoords(e);
+      
       canvasCtx.beginPath();
       canvasCtx.moveTo(state.current.lastX, state.current.lastY);
-      canvasCtx.lineTo(e.offsetX, e.offsetY);
+      canvasCtx.lineTo(offsetX, offsetY);
       canvasCtx.lineJoin = "round";
       canvasCtx.lineCap = "round";
       canvasCtx.strokeStyle = STROKE_COLOR;
@@ -86,28 +106,32 @@ const DrawPad = () => {
       canvasCtx.stroke();
       canvasCtx.closePath();
       
-      state.current.lastX = e.offsetX;
-      state.current.lastY = e.offsetY;
+      state.current.lastX = offsetX;
+      state.current.lastY = offsetY;
     }
-    canvas.current.addEventListener("mousemove", onMouseMove);
-
-    function onMouseLeave(_: any) {
+    
+    function onDrawLeave(_: any) {
       state.current.isDrawing = false;
     }
-    canvas.current.addEventListener("mouseup", onMouseLeave);
-    canvas.current.addEventListener("mouseout", onMouseLeave);
+
+    canvas.current.addEventListener("touchmove", onMouseMove, {signal, passive: false});
+    canvas.current.addEventListener("touchstart", onPointerDown, {signal, passive: false});
+    canvas.current.addEventListener("mousemove", onMouseMove, {signal});
+    canvas.current.addEventListener("mousedown", onPointerDown, {signal});
+    canvas.current.addEventListener("touchcancel", onDrawLeave, {signal});
+    canvas.current.addEventListener("touchend", onDrawLeave, {signal})
+    canvas.current.addEventListener("mouseup", onDrawLeave, {signal});
+    canvas.current.addEventListener("mouseout", onDrawLeave, {signal});
+
     return () => {
-      if (!canvas.current) return;
-      canvas.current.removeEventListener("mousedown", onMouseDown);
-      canvas.current.removeEventListener("mousemove", onMouseMove);
-      canvas.current.removeEventListener("mouseout", onMouseLeave);
-      canvas.current.removeEventListener("mouseup", onMouseLeave);
+      controller.abort();
     }
   }, [canvas]);
 
   return (
     <canvas ref={canvas} width={224} height={224}
       className="
+        touch-none
         shadow-lg 
         border border-neutral-600 rounded-sm 
         bg-neutral-900
