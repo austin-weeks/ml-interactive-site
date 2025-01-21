@@ -3,7 +3,7 @@ import DrawPad from "./DrawPad"
 import "./results-table.css"
 import Results from "./ResultsTable";
 
-const API_URL = "http://localhost:8080/models";
+const API_URL = window.location.href.includes("github.io") ? "https://model-server-1020153738308.us-central1.run.app/models" : "http://localhost:8080/models";
 
 const MODELS = [
   "Basic Neural Net",
