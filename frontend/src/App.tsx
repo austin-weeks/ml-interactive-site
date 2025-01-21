@@ -110,14 +110,10 @@ const App = () => {
   }
 
   return (
-    <AppContext.Provider value={{
-      onRequestImage,
-      getClearCanvas
-    }}
-    >
+    <AppContext.Provider value={{onRequestImage, getClearCanvas}}>
       <div className="flex flex-col items-center">
-        <h1 className="font-serif italic text-center font-semibold">How good is that model?</h1>
-        <p className="text-center pt-2 pb-3">
+        <h1 className="font-serif italic text-center text-5xl sm:text-[3.2rem] font-semibold">How good is that model?</h1>
+        <p className="text-center pt-2 pb-3 text-sm sm:text-lg">
           Click and drag to draw a single numerical digit (0-9). <br/>
           Hit submit to see the models' guesses!
         </p>

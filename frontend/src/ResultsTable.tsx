@@ -75,9 +75,10 @@ const ModelNameCell = ({ model }: modelNameCellProps) => {
       <td className="underline decoration-dotted decoration-gray-500">
         <span className="group relative cursor-default">
           {model}
-          <div className="absolute z-10 min-w-[30rem] max-w-md bg-neutral-900 px-3 py-1.5
+          <div className="absolute z-10 min-w-[19.5rem] sm:min-w-[30rem] max-w-md bg-neutral-900 px-3 py-1.5
             border rounded-lg shadow-lg border-neutral-600
-            translate-x-[-18%] translate-y-0.5
+            sm:translate-x-[-18%] translate-y-0.5
+            bottom-7 sm:bottom-auto
             opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none
             text-justify"
           >
