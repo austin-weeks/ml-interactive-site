@@ -1,7 +1,7 @@
 # 🤖 Machine-Learning Interactive Site
 
 <a href="https://austin-weeks.github.io/ml-interactive-site" target="__blank">
-    <img src="/preview.png" alt="App Preview">
+    <img src="preview.png" alt="App Preview">
 </a>
 
 A machine-learning projects with three parts...
